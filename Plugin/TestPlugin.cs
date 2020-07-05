@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Plugin
 {
-    public class TestPlugin: MarshalByRefObject
+    public class TestPlugin
     {
 
         public static string ReadFile(string filePath)
