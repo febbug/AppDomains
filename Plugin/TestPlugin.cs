@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Contracts;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Plugin
 {
-    public class TestPlugin
+    public class TestPlugin: IPluginApplication
     {
 
-        public static string ReadFile(string filePath)
+        public  string ReadFile(string filePath)
         {
             return File.ReadAllText(filePath);
         }
