@@ -1,6 +1,8 @@
 ﻿using Contracts;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using System.Security;
@@ -15,18 +17,20 @@ namespace AppDomains
         const string pluginAssembly = @"Plugin";
         const string pluginClass = "Plugin.TestPlugin";
         const string entryPoint = "ReadFile";
-        private readonly IPluginApplication plugin;
+        private IPluginApplication plugin;
 
-        public PluginSandBox()
-        {
-            //TODO load this via MEF 🤞
-            this.plugin = AppDomain.CurrentDomain.CreateInstanceAndUnwrap(pluginAssembly, pluginClass) as IPluginApplication;
-
-        }
+        //Anything we need to call from plugin is wrapped in sandbox's method
         public string ExecutePlugin(string filePath)
         {
             return plugin.ReadFile(filePath);
         }
 
+        //did not find a way to pass params to sandbox's constructor, so having this method :(
+        internal void InitPlugin(string pluginPath)
+        {
+            var catalogue = new DirectoryCatalog(pluginPath);
+            var container = new CompositionContainer(catalogue);
+            plugin =  container.GetExportedValue<IPluginApplication>();
+        }
     }
 }

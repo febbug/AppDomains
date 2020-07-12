@@ -15,10 +15,10 @@ namespace AppDomains
     class Program
     {
 
-        const string pathToPlugin = @"..\..\..\Plugin\bin\Debug";
+        const string pathToPlugin = @"c:\temp\Plugin";
 
         private static string filePath =@"c:\temp\Plugin.txt" ; //this one causes security exception
-        //private static string filePath = @"C:\Users\febbu\source\repos\AppDomains\Plugin\bin\Debug\Plugin.txt";
+        //private static string filePath = @"c:\temp\Plugin\Plugin.txt";
 
         static void Main(string[] args)
         {
@@ -31,8 +31,8 @@ namespace AppDomains
         private static PluginSandBox GetPluginSandBox()
         {
             AppDomainSetup adSetup = new AppDomainSetup();
-            var pluginPath = Path.GetFullPath(pathToPlugin);
-            adSetup.ApplicationBase = pluginPath;
+            var sandBoxPath = Path.GetFullPath(pathToPlugin);
+            adSetup.ApplicationBase = sandBoxPath;
 
             //Setting the permissions for the AppDomain. We give the permission to execute and to
             //read/discover the location where the untrusted code is loaded.  
@@ -41,18 +41,22 @@ namespace AppDomains
 
             FileIOPermission fp = new FileIOPermission(
                     FileIOPermissionAccess.Read |
-                        FileIOPermissionAccess.PathDiscovery,pluginPath); //read permissions set only to plugin directory
+                        FileIOPermissionAccess.PathDiscovery,sandBoxPath); //read permissions set only to plugin directory
 
 
             permSet.AddPermission(fp);
             StrongName fullTrustAssembly = typeof(PluginSandBox).Assembly.Evidence.GetHostEvidence<StrongName>();
-            AppDomain newDomain = AppDomain.CreateDomain("Sandbox", null, adSetup, permSet, fullTrustAssembly);
-            ObjectHandle handle = Activator.CreateInstanceFrom(newDomain, typeof(PluginSandBox).Assembly.ManifestModule.FullyQualifiedName,
-            typeof(PluginSandBox).FullName);
+            AppDomain sandBoxDomain = AppDomain.CreateDomain("Sandbox", null, adSetup, permSet, fullTrustAssembly);
+            
+            //TODO this way we could pass the path right to the constructor
+            //var pSandBox = (PluginSandBox)sandBoxDomain.CreateInstanceAndUnwrap(typeof(PluginSandBox).Assembly.ManifestModule.FullyQualifiedName,
+            //typeof(PluginSandBox).FullName, new[] { sandBoxPath });
 
-            //untrusted code.  
-            PluginSandBox pLoader = (PluginSandBox)handle.Unwrap();
-            return pLoader;
+            ObjectHandle handle = Activator.CreateInstanceFrom(sandBoxDomain, typeof(PluginSandBox).Assembly.ManifestModule.FullyQualifiedName,
+            typeof(PluginSandBox).FullName);
+            PluginSandBox pSandBox = (PluginSandBox)handle.Unwrap();
+            pSandBox.InitPlugin(sandBoxPath);
+            return pSandBox;
         }
     }
 }
