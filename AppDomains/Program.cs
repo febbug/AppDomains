@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
 using System.Security;
 using System.Security.Permissions;
@@ -14,7 +15,9 @@ namespace AppDomains
 {
     class Program
     {
-
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr MessageBox(int hWnd, String text,
+                   String caption, uint type);
         const string pathToPlugin = @"c:\temp\Plugin";
 
         private static string filePath =@"c:\temp\Plugin.txt" ; //this one causes security exception
@@ -22,6 +25,9 @@ namespace AppDomains
 
         static void Main(string[] args)
         {
+
+            MessageBox(0, "Hello From Main Application", "Platform Invoke", 0);
+
             PluginSandBox pluginSandBox = GetPluginSandBox();
             Console.WriteLine(pluginSandBox.ExecutePlugin(filePath));
             Console.ReadKey();
